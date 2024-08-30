@@ -1,5 +1,6 @@
 import asyncio
 import typing
+from functools import partial
 from pathlib import Path
 
 import tenacity
@@ -108,11 +109,12 @@ class PicassoApp:
             console.log(
                 f"Generating {int(number_of_images)} images based on the prompt: {prompt}"
             )
-            response = self._images_gen_model.generate_images(
-                prompt=prompt,
-                number_of_images=int(number_of_images),
-                add_watermark=True,
-            )
+            generate_images = partial(self._images_gen_model.generate_images,
+                                      prompt=prompt,
+                                      number_of_images=int(number_of_images),
+                                      add_watermark=True)
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(None, generate_images)
             for i, image in enumerate(response.images):
                 image.save(str(self._images_folder / f"image_{i}.jpg"))
         except Exception as e:
@@ -150,6 +152,7 @@ class PicassoApp:
         except Exception as e:
             console.log(f"An error occurred: {e}")
             raise e
+    
 
     def start_chat(self):
         """
