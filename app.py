@@ -38,16 +38,6 @@ async def write_poem(prompt: str):
     """
     return await app.write_poem(prompt)
 
-@cl.step(type="tool")
-async def generate_image_prompt(prompt: str):
-    """
-    Generate an image prompt based on the given prompt.
-
-    :param prompt: The prompt to generate the image prompt from.
-    :return: The generated image prompt.
-    """
-    return await app.generate_image_prompt(prompt)
-
 
 @cl.on_message
 async def on_message_handler(message: cl.Message):
@@ -78,6 +68,7 @@ async def on_message_handler(message: cl.Message):
         function_args = {
             arg_name: arg_val for arg_name, arg_val in function_call.args.items()
         }
+        print(function_name, function_args)
 
         if function_name == "generate_images":
             generated_images = await generate_images(**function_args)

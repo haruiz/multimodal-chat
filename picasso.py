@@ -37,9 +37,7 @@ class PicassoApp:
             generation_config=GenerationConfig(temperature=2.0),
         )
         self._chat_model = GenerativeModel(
-            model_name="gemini-1.5-flash",
-            generation_config=GenerationConfig(temperature=0),
-            tools=self.get_chat_tools_def(),
+            model_name="gemini-1.5-flash"
         )
         self._images_folder = Path(images_folder)
         self._chat_session: ChatSession = None
@@ -75,13 +73,13 @@ class PicassoApp:
 
         write_poem_tool = FunctionDeclaration(
             name="write_poem",
-            description="Generates a poem based on the provided prompt and images.",
+            description="Generates or write a poem about the provide prompt and images.",
             parameters={
                 "type": "object",
-                "properties": {"prompt": {"type": "string"}},
+                "properties": {"prompt": {"type": "string"}}
             },
         )
-        return [Tool(function_declarations=[generate_images_tool, write_poem_tool])]
+        return [Tool(function_declarations=[write_poem_tool, generate_images_tool])]
 
     @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
     async def generate_images(
@@ -119,7 +117,7 @@ class PicassoApp:
                 image.save(str(self._images_folder / f"image_{i}.jpg"))
         except Exception as e:
             console.log(f"An error occurred: {e}")
-            raise e
+            raise RuntimeError("Failed to generate images") from e  
 
     @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
     async def write_poem(self, prompt: str):
@@ -133,25 +131,21 @@ class PicassoApp:
             str: The generated poem.
         """
         try:
-            if prompt is None:
-                raise ValueError("prompt cannot be None")
-
             image_files = list(Path(self._images_folder).iterdir())
-            if len(image_files) == 0:
-                return "No images found. in the images folder."
+            if not image_files:
+                return "No images found in the images folder."
 
             images = [
-                Part.from_image(Image.load_from_file(image_file))
+                Part.from_image(Image.load_from_file(str(image_file)))
                 for image_file in image_files
             ]
-            prompt = [
-                f"write a poem based on the following prompt: {prompt} and the images: "
-            ] + images
-            response = await self._poem_gen_model.generate_content_async(prompt)
+            text_prompt = prompt  + "," if prompt else ""
+            full_prompt = [f"write a poem based on the following content: {text_prompt}"] + images
+            response = await self._poem_gen_model.generate_content_async(full_prompt)
             return response.text
         except Exception as e:
-            console.log(f"An error occurred: {e}")
-            raise e
+            console.log(f"An error occurred during poem generation: {e}")
+            raise RuntimeError("Failed to generate poem") from e
     
 
     def start_chat(self):
@@ -165,7 +159,9 @@ class PicassoApp:
         Send a message to the chat model.
         """
         stream_response = await self._chat_session.send_message_async(
-            message, stream=True
+            message, 
+            tools=self.get_chat_tools_def(),
+            stream=True
         )
         return stream_response
 
