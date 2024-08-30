@@ -11,9 +11,7 @@ from vertexai.generative_models import (
     GenerationConfig,
     GenerativeModel,
     Tool,
-    ChatSession,
-    Part,
-    Image,
+    ChatSession, Part, Image,
 )
 from vertexai.preview.vision_models import ImageGenerationModel
 
@@ -37,7 +35,8 @@ class PicassoApp:
             generation_config=GenerationConfig(temperature=2.0),
         )
         self._chat_model = GenerativeModel(
-            model_name="gemini-1.5-flash"
+            model_name="gemini-1.5-flash",
+            tools=self.get_chat_tools_def()
         )
         self._images_folder = Path(images_folder)
         self._chat_session: ChatSession = None
@@ -70,7 +69,6 @@ class PicassoApp:
                 "required": ["prompt"],
             },
         )
-
         write_poem_tool = FunctionDeclaration(
             name="write_poem",
             description="Generates or write a poem about the provide prompt and images.",
@@ -83,7 +81,7 @@ class PicassoApp:
 
     @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
     async def generate_images(
-        self, prompt: str, number_of_images: typing.Union[int, float] = 4
+        self, prompt: str, **kwargs: dict
     ):
         """
         Generates an image based on the provided prompt.
@@ -103,7 +101,8 @@ class PicassoApp:
             self._images_folder.mkdir(exist_ok=True, parents=True)
             for image in self._images_folder.iterdir():
                 image.unlink()
-
+            
+            number_of_images = kwargs.get("number_of_images", 1)
             console.log(
                 f"Generating {int(number_of_images)} images based on the prompt: {prompt}"
             )
@@ -117,10 +116,10 @@ class PicassoApp:
                 image.save(str(self._images_folder / f"image_{i}.jpg"))
         except Exception as e:
             console.log(f"An error occurred: {e}")
-            raise RuntimeError("Failed to generate images") from e  
+            raise RuntimeError("Failed to generate images") from e
 
     @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
-    async def write_poem(self, prompt: str):
+    async def write_poem(self, prompt: str = None):
         """
         Generates a poem based on the provided prompt and images.
 
@@ -139,14 +138,14 @@ class PicassoApp:
                 Part.from_image(Image.load_from_file(str(image_file)))
                 for image_file in image_files
             ]
-            text_prompt = prompt  + "," if prompt else ""
+            text_prompt = prompt + "," if prompt else ""
             full_prompt = [f"write a poem based on the following content: {text_prompt}"] + images
             response = await self._poem_gen_model.generate_content_async(full_prompt)
             return response.text
         except Exception as e:
             console.log(f"An error occurred during poem generation: {e}")
             raise RuntimeError("Failed to generate poem") from e
-    
+
 
     def start_chat(self):
         """
@@ -154,18 +153,17 @@ class PicassoApp:
         """
         self._chat_session = self._chat_model.start_chat()
 
-    async def send_message(self, message: str):
+    async def send_message(self, message: str | list):
         """
         Send a message to the chat model.
         """
         stream_response = await self._chat_session.send_message_async(
             message, 
-            tools=self.get_chat_tools_def(),
             stream=True
         )
         return stream_response
 
-    def send_message_sync(self, message: str):
+    def send_message_sync(self, message: str | list):
         """
         Send a message to the chat model.
         """

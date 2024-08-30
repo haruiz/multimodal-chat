@@ -4,6 +4,8 @@
 
 Picasso is a multimodal chat demo that brings together the power of Vertex AI and Google's Gemini family of models for a uniquely interactive experience. By tapping into Gemini's advanced features, including function calling and the cutting-edge Imagen image generation model, Picasso can create stunning images, compose poems, and engage in natural, engaging conversations with users.
 
+![Picasso Demo](assets/img.png)
+
 **Technologies Used:**
 
 * **Vertex AI:** Google Cloud's AI platform for building, deploying, and managing AI models.

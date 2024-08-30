@@ -1,3 +1,4 @@
+
 import chainlit as cl
 from vertexai.generative_models import GenerationResponse, Part
 
@@ -16,7 +17,7 @@ async def start():
 
 
 @cl.step(type="tool")
-async def generate_images(prompt: str, number_of_images: int):
+async def generate_images(prompt: str, **kwargs):
     """
     Generate images based on the given prompt.
 
@@ -24,19 +25,19 @@ async def generate_images(prompt: str, number_of_images: int):
     :param number_of_images: The number of images to generate.
     :return: A list of generated images.
     """
-    await app.generate_images(prompt, number_of_images)
+    await app.generate_images(prompt, **kwargs)
     return app.generated_images
 
 
 @cl.step(type="tool")
-async def write_poem(prompt: str):
+async def write_poem(**kwargs):
     """
     Generate a poem based on the given prompt.
 
     :param prompt: The prompt to generate the poem from.
     :return: The generated poem.
     """
-    return await app.write_poem(prompt)
+    return await app.write_poem(**kwargs)
 
 
 @cl.on_message
@@ -79,7 +80,8 @@ async def on_message_handler(message: cl.Message):
             await cl.Message(
                 content="Here are the generated images:", elements=image_elements
             ).send()
-
         elif function_name == "write_poem":
             poem = await write_poem(**function_args)
             await cl.Message(content=f"Here is the generated poem: {poem}").send()
+
+        
