@@ -79,7 +79,7 @@ class PicassoApp:
         )
         return [Tool(function_declarations=[write_poem_tool, generate_images_tool])]
 
-    @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
+    @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3), reraise=True)
     async def generate_images(
         self, prompt: str, **kwargs: dict
     ):
@@ -116,9 +116,9 @@ class PicassoApp:
                 image.save(str(self._images_folder / f"image_{i}.jpg"))
         except Exception as e:
             console.log(f"An error occurred: {e}")
-            raise RuntimeError("Failed to generate images") from e
+            raise RuntimeError(f"Failed to generate images: {e}") from e
 
-    @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3))
+    @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(3), reraise=True)
     async def write_poem(self, prompt: str = None):
         """
         Generates a poem based on the provided prompt and images.
@@ -132,7 +132,7 @@ class PicassoApp:
         try:
             image_files = list(Path(self._images_folder).iterdir())
             if not image_files:
-                return "No images found in the images folder."
+                return "No images found in the images folder. "
 
             images = [
                 Part.from_image(Image.load_from_file(str(image_file)))
@@ -144,7 +144,7 @@ class PicassoApp:
             return response.text
         except Exception as e:
             console.log(f"An error occurred during poem generation: {e}")
-            raise RuntimeError("Failed to generate poem") from e
+            raise RuntimeError(f"Failed to generate poem: {e}") from e
 
 
     def start_chat(self):

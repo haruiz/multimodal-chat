@@ -1,0 +1,52 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      "--progress",
+      "plain",
+      "--file",
+      "Dockerfile",
+      "--tag",
+      "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest",
+      ".",
+    ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest",
+    ]
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run',
+      'deploy',
+      "${_SERVICE_NAME}",
+      '--image',
+      "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest",
+      '--region',
+      "${_REGION}",
+      '--allow-unauthenticated',
+      '--platform',
+      'managed',
+      '--port',
+      '8000',
+      '--memory',
+      '1Gi',
+      '--cpu',
+      '1',
+      '--min-instances',
+      '1',
+      '--max-instances',
+      '2',
+      '--service-account',
+      '${_SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com'
+    ]
+images:
+  - "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest"
+substitutions:
+  _IMAGE: picasso-image
+  _SERVICE_NAME: picasso-service
+  _REGION: us-central1
+  _LOCATION: us-central1
+  _REPOSITORY: build-with-ai-docker-repo
+  _SERVICE_ACCOUNT_ID: vertex-ai-caller
+
