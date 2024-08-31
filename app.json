@@ -1,0 +1,19 @@
+{
+    "name": "picasso-app",
+    "options": {
+        "allow-unauthenticated": false,
+        "memory": "512Mi",
+        "cpu": "1",
+        "port": 8000,
+        "http2": false,
+        "concurrency": 80,
+        "max-instances": 2
+    },
+    "hooks": {
+        "prebuild": {
+            "commands": [
+                "gcloud auth configure-docker"
+            ]
+        }
+    }
+}
