@@ -23,23 +23,23 @@ class PicassoApp:
     A class to generate images and poems using the PICASSO model.
     """
 
-    def __init__(self, images_folder: typing.Union[str, Path] = "images"):
+    def __init__(self, images_folder: typing.Union[str, Path] = "images", **kwargs):
         """
         Initialize the PICASSO class with the required models.
         """
         self._images_gen_model = ImageGenerationModel.from_pretrained(
-            "imagegeneration@006"
+            kwargs.get("images_gen_model_name", "imagen-3.0-generate-001"),
         )
         self._poem_gen_model = GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name=kwargs.get("poem_gen_model_name", "gemini-1.5-flash"),
             generation_config=GenerationConfig(temperature=2.0),
         )
         self._chat_model = GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name=kwargs.get("chat_model_name", "gemini-1.5-flash"),
             tools=self.get_chat_tools_def()
         )
         self._images_folder = Path(images_folder)
-        self._chat_session: ChatSession = None
+        self._chat_session: ChatSession | None = None
 
     @property
     def generated_images(self):
@@ -109,6 +109,9 @@ class PicassoApp:
             generate_images = partial(self._images_gen_model.generate_images,
                                       prompt=prompt,
                                       number_of_images=int(number_of_images),
+                                      aspect_ratio="1:1",
+                                      safety_filter_level="block_some",
+                                      person_generation="allow_adult",
                                       add_watermark=True)
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, generate_images)

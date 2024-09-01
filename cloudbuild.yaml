@@ -15,7 +15,8 @@ steps:
       'push',
       "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest",
     ]
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
     args: [
       'run',
       'deploy',
@@ -24,7 +25,6 @@ steps:
       "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest",
       '--region',
       "${_REGION}",
-      '--allow-unauthenticated',
       '--platform',
       'managed',
       '--port',
@@ -38,7 +38,8 @@ steps:
       '--max-instances',
       '2',
       '--service-account',
-      '${_SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com'
+      '${_SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com',
+      '--allow-unauthenticated'
     ]
 images:
   - "${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest"

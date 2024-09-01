@@ -56,9 +56,21 @@ This demo is intended for developers, researchers, and anyone interested in expl
 
 ## Code Structure
 
-* **`app.py`:** The main application file that sets up the Chainlit interface and handles user interactions.
-* **`picasso.py`:** Contains the core logic for interacting with the Gemini model, including function definitions for image generation and poem writing.
-* **`images/`:**  A directory to store generated images, this folder is created automatically when the first image is generated.
+```plaintext
+multimodal-chat/
+├── app/
+│   ├── __init__.py
+│   ├── picasso.py       # Core logic for interacting with the Gemini and Imagen3 models, including function definitions for image generation and poem writing.
+│   └── main.py          # Chainlit application logic. It sets up the Chainlit components and handles user interactions.
+├── scripts/
+│   ├── setup.sh                 # Script to set up the Google Cloud project and resources for deploying the application to cloud run.
+│   └── enable-service-public-access.sh # Script to enable public access to the deployed service.
+├── requirements.sh             # Script to generate requirements.txt
+├── run.docker.sh               # Script to build and run the Docker container.
+├── run.local.sh                # Script to run the application locally using Chainlit.
+└── Dockerfile                  # Dockerfile for building the application image.
+```
+
 
 ## Example Interactions
 

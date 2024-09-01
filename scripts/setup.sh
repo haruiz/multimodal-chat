@@ -2,7 +2,7 @@ PERFORM_RESET=0
 PROJECT_ID="build-with-ai-project"
 SERVICE_ACCOUNT_ID="vertex-ai-caller"
 SERVICE_ACCOUNT_EMAIL=$SERVICE_ACCOUNT_ID@$PROJECT_ID.iam.gserviceaccount.com
-KEY_FILE=credentials.json
+KEY_FILE=./../credentials.json
 
 
 # reset gcloud settings
@@ -78,6 +78,11 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/run.admin"
+
+# cloud build admin
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+    --role="roles/cloudbuild.builds.editor"
 
 # create key file
 gcloud iam service-accounts keys create $KEY_FILE \
