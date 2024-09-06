@@ -30,14 +30,9 @@ This demo is intended for developers, researchers, and anyone interested in expl
 1. **Prerequisites:**
    * **Google Cloud Project:** Create a Google Cloud project and enable the Vertex AI API.
    * **Billing:** Ensure that billing is enabled for your project.
-   * **Service Account:** Create a service account with the necessary permissions (Vertex AI User, Storage Object Admin) and download its JSON key file.
-   * **Environment Variables:** Set the following environment variables:
-     ```bash
-     export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service_account_key.json"
-     export PROJECT_ID="your-project-id"
-     export LOCATION="your-vertex-ai-region"  # e.g., 'us-central1'
-     ```
-
+   * **Service Account:** Create a service account with the necessary permissions.
+   * **Create Service Account Key:** Download the service account key as a JSON file and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of this file. Alternatively, you can pass the path to the key file as an argument in the `/app/main.py` script when initializing the `PicassoChat` class. 
+   
 2. **Clone the Repository:**
    ```bash
    git clone https://github.com/your-username/picasso.git

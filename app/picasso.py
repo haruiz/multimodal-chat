@@ -1,4 +1,5 @@
 import asyncio
+import os
 import typing
 from functools import partial
 from pathlib import Path
@@ -13,20 +14,40 @@ from vertexai.generative_models import (
     Tool,
     ChatSession, Part, Image,
 )
+from google.auth import default
 from vertexai.preview.vision_models import ImageGenerationModel
+from google.oauth2 import service_account
 
 console = Console()
 
 
-class PicassoApp:
+class PicassoChat:
     """
     A class to generate images and poems using the PICASSO model.
     """
 
-    def __init__(self, images_folder: typing.Union[str, Path] = "images", **kwargs):
+    def __init__(self, images_folder: typing.Union[str, Path] = "images", credentials_file: str = None, **kwargs):
         """
         Initialize the PICASSO class with the required models.
         """
+
+        # Fetch environment variables
+        project_id = os.getenv("PROJECT_ID")
+        location = os.getenv("LOCATION")
+
+        # Check if required environment variables are present
+        if not project_id or not location:
+            raise ValueError("Please provide the project_id and location as environment variables")
+
+        # Initialize credentials
+        if credentials_file:
+            credentials = service_account.Credentials.from_service_account_file(credentials_file)
+        else:
+            credentials, _ = default()
+
+        # Initialize Vertex AI
+        vertexai.init(project=project_id, location=location, credentials=credentials)
+
         self._images_gen_model = ImageGenerationModel.from_pretrained(
             kwargs.get("images_gen_model_name", "imagen-3.0-generate-001"),
         )
@@ -36,7 +57,7 @@ class PicassoApp:
         )
         self._chat_model = GenerativeModel(
             model_name=kwargs.get("chat_model_name", "gemini-1.5-flash"),
-            tools=self.get_chat_tools_def()
+            tools=self.get_chat_tools()
         )
         self._images_folder = Path(images_folder)
         self._chat_session: ChatSession | None = None
@@ -49,7 +70,7 @@ class PicassoApp:
         return [image_file for image_file in self._images_folder.iterdir()]
 
     @staticmethod
-    def get_chat_tools_def():
+    def get_chat_tools():
         """
         Returns the tools definition for the chat model.
         :return:
@@ -150,7 +171,7 @@ class PicassoApp:
             raise RuntimeError(f"Failed to generate poem: {e}") from e
 
 
-    def start_chat(self):
+    def start_session(self):
         """
         Start the chat.
         """
@@ -179,12 +200,12 @@ if __name__ == "__main__":
     LOCATION = "us-central1"
     vertexai.init(project=PROJECT_ID, location=LOCATION)
 
-    app = PicassoApp()
-    app.start_chat()
+    chat = PicassoChat()
+    chat.start_session()
     while True:
         user_input = input("Enter a message: ")
         if user_input == "exit":
             break
-        response = app.send_message_sync(user_input)
+        response = chat.send_message_sync(user_input)
         for part in response:
             console.log(part.text)
