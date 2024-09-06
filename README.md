@@ -1,4 +1,4 @@
-# Picasso: A Multimodal Chat Demo with Vertex AI and Gemini
+# Picasso: A Multimodal Chat Demo that integrates Vertex AI, Gemini and Imagen 3
 
 ## Project Overview
 
